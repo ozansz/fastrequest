@@ -7,3 +7,9 @@ python3 setup.py build_ext --inplace
 
 echo -e "\n[+] Installing module ...\n"
 pip3 install .
+
+echo -e "\n[+] Making cleanup ..."
+rm -rf build/
+rm *.so
+
+echo "[i] Done. Bye."

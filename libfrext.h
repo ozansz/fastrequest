@@ -3,6 +3,11 @@
 #include <stdlib.h>
 #include <stdint.h>
 
+#define ERR_STR_MAX_SIZE 1024
+#define EXCEPTION_MSG_MAX_SIZE 2048
+#define UAGENT_MAX_SIZE 255
+#define URL_MAX_SIZE 255
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -25,11 +30,11 @@ typedef struct {
 size_t
 WriteMemoryCallback(void *contents, size_t size, size_t nmemb, void *userp);
 
-uint_fast8_t
+int_fast8_t
 FastGet_libcurl(const char *url, const char *user_agent, ChunkMem *mem);
 
-uint_fast32_t
-FastGet_libcurl_format_exception(char *str, uint_fast8_t err_code);
+int_fast32_t
+FastGet_libcurl_format_exception(char *str, int_fast8_t err_code);
 
 void __debug(const char *msg);
 

@@ -1,13 +1,14 @@
 #include "libfrext.h"
 #include "frmodconfig.h"
 
+#include <Python.h>
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
 #include <curl/curl.h>
 
-#define UAGENT_MAX_SIZE 255
 #define DEFAULT_UAGENT "Mozilla/5.0 (Windows NT 6.1; WOW64) " \
                        "AppleWebKit/537.36 (KHTML, like Gecko) " \
                        "Chrome/28.0.1500.52 Safari/537.36 OPR/15.0.1147.100"
@@ -27,7 +28,8 @@ WriteMemoryCallback(void *contents, size_t size, size_t nmemb, void *userp)
   size_t realsize = size * nmemb;
   ChunkMem *mem = (ChunkMem *)userp;
 
-  mem->memory = realloc(mem->memory, mem->size + realsize + 1);
+  __debug("[PRECALL] PyMem_Realloc");
+  mem->memory = PyMem_Realloc(mem->memory, mem->size + realsize + 1);
   if(mem->memory == NULL) {
     // Because we're going to use this library in a Python extension,
     // explicit printf calls are inappropriate.
@@ -42,7 +44,7 @@ WriteMemoryCallback(void *contents, size_t size, size_t nmemb, void *userp)
   return realsize;
 }
 
-uint_fast8_t
+int_fast8_t
 FastGet_libcurl(const char *url, const char *user_agent, ChunkMem *mem)
 {
   __debug("[CALL] FastGet");
@@ -51,6 +53,7 @@ FastGet_libcurl(const char *url, const char *user_agent, ChunkMem *mem)
   CURLcode res;
 
   char uagent[UAGENT_MAX_SIZE];
+  char curl_err_string[EXCEPTION_MSG_MAX_SIZE];
 
   __debug("Checking if arg:url is NULL");
   if (url == NULL || strlen(url) == 0) {
@@ -59,9 +62,9 @@ FastGet_libcurl(const char *url, const char *user_agent, ChunkMem *mem)
 
   bzero((char *) &uagent, UAGENT_MAX_SIZE);
 
-  __debug("Checking if arg:user_agent is NULL");
-  if (user_agent == NULL) {
-    __debug("arg:user_agent is NULL, using DEFAULT_UAGENT instead");
+  __debug("Checking if arg:user_agent is NULL or empty");
+  if ((user_agent == NULL) || (user_agent == "") || (strlen(user_agent) == 0)) {
+    __debug("arg:user_agent is NULL or empty, using DEFAULT_UAGENT instead");
     strcpy(uagent, DEFAULT_UAGENT);
   }
   else {
@@ -69,7 +72,7 @@ FastGet_libcurl(const char *url, const char *user_agent, ChunkMem *mem)
     if (strlen(user_agent) >= UAGENT_MAX_SIZE) {
       return -ARG_UAGENT_IS_TOO_BIG;
     }
-    __debug("arg:user_agent is not NULL");
+    __debug("arg:user_agent is not NULL nor empty");
     strcpy(uagent, user_agent);
   }
 
@@ -89,6 +92,9 @@ FastGet_libcurl(const char *url, const char *user_agent, ChunkMem *mem)
 
   __debug("Checking if CURL has returned any error");
   if(res != CURLE_OK) {
+    sprintf(curl_err_string, "Generic CURL error: %s", curl_easy_strerror(res));
+    __debug("[PRECALL] PyErr_SetString");
+    PyErr_SetString(PyExc_RuntimeError, curl_err_string);
     return -CURL_ERROR;
   }
 
@@ -99,10 +105,12 @@ FastGet_libcurl(const char *url, const char *user_agent, ChunkMem *mem)
   return RETURN_SUCCESS;
 }
 
-uint_fast32_t
-FastGet_libcurl_format_exception(char *str, uint_fast8_t err_code)
+int_fast32_t
+FastGet_libcurl_format_exception(char *str, int_fast8_t err_code)
 {
-  char *err_str;
+  __debug("[CALL] FastGet_libcurl_format_exception");
+
+  char err_str[ERR_STR_MAX_SIZE] = {0};
 
   switch (err_code) {
     case -OUT_OF_MEMORY:
@@ -121,6 +129,7 @@ FastGet_libcurl_format_exception(char *str, uint_fast8_t err_code)
       strcpy(err_str, "Unknown error");
   }
 
-  return (uint_fast32_t) sprintf(str, \
+  __debug("[PRECALL] sprintf");
+  return (int_fast32_t) sprintf(str, \
     "FastGet_libcurl returned with code: %d\n%s", err_code, err_str);
 }
