@@ -1,3 +1,6 @@
+#!/bin/bash
+set -e
+
 echo -e "[+] Installing dependencies...\n"
 sudo apt-get install libcurl4 libcurl4-gnutls-dev python3-pip
 pip3 install setuptools
