@@ -5,7 +5,7 @@ module = Extension("fastrequest", sources=['fastrequest.c', 'libfrext.c'],
 
 setup(
     name="fastrequest",
-    version="0.4-beta",
+    version="0.6.10-beta",
     description="fastrequest fast http requests extension",
     ext_modules=[module]
 )

@@ -9,9 +9,15 @@
 #include <stdint.h>
 #include <curl/curl.h>
 
-#define DEFAULT_UAGENT "Mozilla/5.0 (Windows NT 6.1; WOW64) " \
-                       "AppleWebKit/537.36 (KHTML, like Gecko) " \
-                       "Chrome/28.0.1500.52 Safari/537.36 OPR/15.0.1147.100"
+#include <unistd.h>
+#include <fcntl.h>
+
+#include <netinet/tcp.h>
+#include <sys/socket.h>
+#include <sys/types.h>
+#include <netinet/in.h>
+#include <netdb.h>
+
 
 void __debug(const char *msg)
 {
@@ -28,6 +34,8 @@ WriteMemoryCallback(void *contents, size_t size, size_t nmemb, void *userp)
   size_t realsize = size * nmemb;
   ChunkMem *mem = (ChunkMem *)userp;
 
+  printf("I  mem.size = %ld\n", mem->size);
+
   __debug("[PRECALL] PyMem_Realloc");
   mem->memory = PyMem_Realloc(mem->memory, mem->size + realsize + 1);
   if(mem->memory == NULL) {
@@ -40,6 +48,8 @@ WriteMemoryCallback(void *contents, size_t size, size_t nmemb, void *userp)
   memcpy(&(mem->memory[mem->size]), contents, realsize);
   mem->size += realsize;
   mem->memory[mem->size] = 0;
+
+  printf("O  mem.size = %ld\n", mem->size);
 
   return realsize;
 }
@@ -132,4 +142,128 @@ FastGet_libcurl_format_exception(char *str, int_fast8_t err_code)
   __debug("[PRECALL] sprintf");
   return (int_fast32_t) sprintf(str, \
     "FastGet_libcurl returned with code: %d\n%s", err_code, err_str);
+}
+
+int_fast8_t FastReq_SockConnect(int_fast16_t *sock, const char *host)
+{
+  __debug("[CALL] FastReq_SockConnect");
+
+  struct hostent *hp;
+  struct sockaddr_in addr;
+  int_fast8_t on = 1;
+
+  __debug("[PRECALL] gethostbyname");
+  if ((hp = gethostbyname(host)) == NULL) {
+    __debug("[PRECALL] PyErr_SetString");
+    PyErr_SetString(PyExc_RuntimeError, "System call \"gethostbyname\" failed");
+    return -SYSCALL_GETHOSTBYNAME_FAILED;
+  }
+
+  __debug("[PRECALL] socket");
+  bcopy(hp->h_addr, &addr.sin_addr, hp->h_length);
+  addr.sin_port = htons(DEFAULT_HTTP_PORT);
+  addr.sin_family = AF_INET;
+  *sock = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
+
+  __debug("[PRECALL] setsockopt");
+  setsockopt(*sock, IPPROTO_TCP, TCP_NODELAY, (const char *) &on, sizeof(int));
+
+  if (*sock == -1) {
+    __debug("[PRECALL] PyErr_SetString");
+    PyErr_SetString(PyExc_RuntimeError, "System call \"setsockopt\" failed");
+    return -SYSCALL_SETSOCKOPT_FAILED;
+  }
+
+  __debug("[PRECALL] connect");
+  if(connect(*sock, (struct sockaddr *) &addr, sizeof(struct sockaddr_in)) == -1){
+    __debug("[PRECALL] PyErr_SetString");
+    PyErr_SetString(PyExc_RuntimeError, "System call \"connect\" failed");
+    return -SYSCALL_CONNECT_FAILED;
+	}
+
+	return RETURN_SUCCESS;
+}
+
+size_t FastReq_FillChunk(void *contents, size_t size, void *chunk)
+{
+  __debug("[CALL] FastReq_FillChunk");
+
+  ChunkMem *mem = (ChunkMem *) chunk;
+
+  printf("I  mem.size = %ld\n", mem->size);
+
+  __debug("[PRECALL] PyMem_Realloc");
+  mem->memory = PyMem_Realloc(mem->memory, mem->size + size + 1);
+  if(mem->memory == NULL) {
+    __debug("[PRECALL] PyErr_SetString");
+    PyErr_SetString(PyExc_MemoryError, "FastReq_FillChunk: Out of memory");
+    return 0;
+  }
+
+  memcpy(&(mem->memory[mem->size]), contents, size * sizeof(char));
+  mem->size += size;
+  mem->memory[mem->size] = 0;
+
+  printf("O  mem.size = %ld\n", mem->size);
+
+  return size;
+}
+
+int_fast32_t FastGet_sock(const char *host, const char *path, ChunkMem *mem)
+{
+  __debug("[CALL] FastGet_sock");
+
+  int_fast16_t sock_dsc;
+  int_fast8_t connect_ret;
+  int_fast32_t data_receieved = 0;
+  size_t mem_increased_size, read_size;
+
+  char payload[SOCK_GET_MSG_MAX_SIZE] = {0};
+  char buffer[CHUNK_SIZE] = {0};
+
+  __debug("[PRECALL] FastReq_SockConnect");
+  connect_ret = FastReq_SockConnect(&sock_dsc, host);
+
+  if (connect_ret < 0) {
+    return connect_ret;
+  }
+
+  __debug("[PRE] Payload creation sequence");
+  strcpy(payload, "GET ");
+  strcat(payload, path);
+  strcat(payload, " HTTP/1.1\r\nHost: ");
+  strcat(payload, host);
+  strcat(payload, "\r\n\r\n");
+
+  __debug("[PRECALL] write");
+  if (write(sock_dsc, payload, strlen(payload)) <= 0) {
+    __debug("[PRECALL] PyErr_SetString");
+    PyErr_SetString(PyExc_RuntimeError, "System call \"write\" failed");
+    return -SYSCALL_WRITE_FAILED;
+  }
+
+  do {
+    __debug("[PRECALL] read");
+    read_size = read(sock_dsc, buffer, CHUNK_SIZE - 1);
+
+    __debug("[PRECALL] FastReq_FillChunk");
+    mem_increased_size = FastReq_FillChunk(buffer, CHUNK_SIZE - 1, mem);
+
+    if (mem_increased_size == 0) {
+      return -OUT_OF_MEMORY;
+    }
+
+    data_receieved += mem_increased_size;
+
+    __debug("[PRECALL] memset");
+    memset(buffer, 0, CHUNK_SIZE - 1);
+  } while (read_size == (CHUNK_SIZE - 1));
+
+  __debug("[PRECALL] shutdown");
+  shutdown(sock_dsc, SHUT_RDWR);
+
+  __debug("[PRECALL] close");
+	close(sock_dsc);
+
+  return data_receieved;
 }

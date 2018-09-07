@@ -2,7 +2,7 @@
 
 // Because we're going to use this library in a Python extension,
 // explicit printf calls are inappropriate.
-#define DEBUG 0
+#define DEBUG 1
 
 #define EC_OUT_OF_MEMORY  "Out of memory (Segmentation fault)"
 #define EC_CURL_ERROR     "Generic CURL error"
