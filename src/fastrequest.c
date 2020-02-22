@@ -250,6 +250,8 @@ PyObject *FastRequest_HttpPost(PyObject *self, PyObject *args) {
     char *url;
     const char *payload_str;
 
+    int_fast8_t payload_encoding = FR_HTTP_POST_URLENCODED;
+
     StringBuffer *strbuf;
 
     PyObject *headers = NULL, *payload = NULL, *payload_json_dump, *json_dumps;
@@ -279,6 +281,7 @@ PyObject *FastRequest_HttpPost(PyObject *self, PyObject *args) {
             payload_json_dump = PyObject_Call(json_dumps, json_dumps_call_args, NULL);
 
             payload_str = PyUnicode_AsUTF8(payload_json_dump);
+            payload_encoding = FR_HTTP_POST_JSON;
 
             Py_DECREF(json_dumps_call_args);
             Py_DECREF(json_dumps);
@@ -315,7 +318,7 @@ PyObject *FastRequest_HttpPost(PyObject *self, PyObject *args) {
     }
 
     FastRequest_FuncDebug("FastRequest_HttpPost", ">> Making the POST request");
-    strbuf = FastRequestAPI_LibcurlHttpPost(url, payload_str, headers);
+    strbuf = FastRequestAPI_LibcurlHttpPost(url, payload_str, payload_encoding, headers);
 
     if (strbuf == NULL) {
         PyErr_SetString(PyExc_RuntimeError, "FastRequestAPI_LibcurlHttpGet response strbuf got NULL");

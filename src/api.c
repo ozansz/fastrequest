@@ -131,7 +131,7 @@ StringBuffer *FastRequestAPI_LibcurlHttpGet(char *url, PyObject *headers) {
     return strbuf;
 }
 
-StringBuffer *FastRequestAPI_LibcurlHttpPost(char *url, const char *payload, PyObject *headers) {
+StringBuffer *FastRequestAPI_LibcurlHttpPost(char *url, const char *payload, int_fast8_t payload_encoding, PyObject *headers) {
     char err_string[FR_GENERIC_ERRSTR_SIZE];
 
     CURL *curl_handle;
@@ -170,6 +170,10 @@ StringBuffer *FastRequestAPI_LibcurlHttpPost(char *url, const char *payload, PyO
     curl_easy_setopt(curl_handle, CURLOPT_POSTFIELDSIZE, readbuf->index + 1);
     curl_easy_setopt(curl_handle, CURLOPT_USERAGENT, FR_LIBCURL_DEFAULT_UAGENT);
 
+    if (payload_encoding == FR_HTTP_POST_JSON) {
+        header_chunk = curl_slist_append(header_chunk, "Content-Type: application/json");
+    }
+
     if (headers != NULL) {
         PyObject *key, *value;
         Py_ssize_t pos = 0;
@@ -189,11 +193,13 @@ StringBuffer *FastRequestAPI_LibcurlHttpPost(char *url, const char *payload, PyO
             header_chunk = curl_slist_append(header_chunk, hdr);
         }
 
-        curl_easy_setopt(curl_handle, CURLOPT_HTTPHEADER, header_chunk);
-
         // There is no need to call Py_DECREF for key and value as they are borrowed references.
     } else {
         FastRequest_FuncDebug("FastRequestAPI_LibcurlHttpPost", "<ARG> Headers null");
+    }
+
+    if (header_chunk != NULL) {
+        curl_easy_setopt(curl_handle, CURLOPT_HTTPHEADER, header_chunk);
     }
 
     curl_write_callback_stringbuffer_err = 0;
