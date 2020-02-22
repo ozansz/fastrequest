@@ -17,8 +17,8 @@ Just import `fastrequest` module. It's usage is as easy as ABC!
 ```python
 import fastrequest
 
-res = fastrequest.get("https://www.google.com")
+res = fastrequest.http_get("https://www.google.com")
 
 with open("index.html", "w") as savefile:
-  savefile.write(res)
+  savefile.write(res.text())
  ```

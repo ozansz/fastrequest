@@ -2,5 +2,6 @@
 
 #include <Python.h>
 
-static PyObject *
-fastrequest__fast_get_libcurl(PyObject *self, PyObject *args);
+#undef FR_DEBUG
+
+PyObject *FastRequest_HttpGet(PyObject *self, PyObject *args);

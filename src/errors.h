@@ -1,0 +1,5 @@
+#define FR_ERR_UNKNOWN  99
+
+#define FR_ERR_MEMORY   10
+#define FR_ERR_NULL_ARG 11
+#define FR_ERR_CURL_GENERIC 12
