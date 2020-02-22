@@ -2,7 +2,11 @@
 set -e
 
 echo -e "[+] Installing dependencies...\n"
-#sudo apt-get install python3-pip
+
+if [ `uname -s` == "Linux" ]; then
+    sudo apt-get install python3-pip
+fi
+
 pip3 install requests
 
 echo -e "\n[i] Starting basic benchmark tests\n"
