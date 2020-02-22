@@ -31,11 +31,16 @@ size_t _FastRequestAPI_LibcurlWriteCallback(char *ptr, size_t size, size_t nmemb
 size_t _FastRequestAPI_LibcurlReadCallback(char *ptr, size_t size, size_t nmemb, void *userdata) {
     StringBuffer *buf = (StringBuffer *) userdata;
     int_fast64_t size_read;
+    char *pptr;
 
-    ptr = StringBuffer_GetSequenceRef(buf, size * nmemb, &size_read);
+    pptr = StringBuffer_GetSequenceRef(buf, size * nmemb, &size_read);
 
-    if (ptr == NULL)
+    if (pptr == NULL) {
         curl_read_callback_stringbuffer_err = -FR_ERR_MEMORY;
+        return 0;
+    }
+
+    memcpy(ptr, pptr, size_read);
 
     return size_read;
 }
@@ -135,9 +140,13 @@ StringBuffer *FastRequestAPI_LibcurlHttpPost(char *url, const char *payload, PyO
     struct curl_slist *header_chunk = NULL;
 
     FastRequest_FuncDebug("FastRequestAPI_LibcurlHttpPost", "==> Function enter");
+    FastRequest_FuncDebug("FastRequestAPI_LibcurlHttpPost", "==== PAYLOAD ====");
+    FastRequest_FuncDebug("FastRequestAPI_LibcurlHttpPost", payload);
  
     StringBuffer *strbuf = StringBuffer_Create();
     StringBuffer *readbuf = StringBuffer_FromString(payload);
+
+    StringBuffer_Dump(readbuf);
     
     if (url == NULL || strlen(url) == 0) {
         snprintf(err_string, FR_GENERIC_ERRSTR_SIZE - 1, "Argument 'url' is None or have zero length.");
@@ -158,7 +167,7 @@ StringBuffer *FastRequestAPI_LibcurlHttpPost(char *url, const char *payload, PyO
     curl_easy_setopt(curl_handle, CURLOPT_WRITEDATA, (void *) strbuf);
     curl_easy_setopt(curl_handle, CURLOPT_READDATA, (void *) readbuf);
     curl_easy_setopt(curl_handle, CURLOPT_READFUNCTION, _FastRequestAPI_LibcurlReadCallback);
-    curl_easy_setopt(curl_handle, CURLOPT_POSTFIELDSIZE, readbuf->index);
+    curl_easy_setopt(curl_handle, CURLOPT_POSTFIELDSIZE, readbuf->index + 1);
     curl_easy_setopt(curl_handle, CURLOPT_USERAGENT, FR_LIBCURL_DEFAULT_UAGENT);
 
     if (headers != NULL) {

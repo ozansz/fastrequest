@@ -253,7 +253,7 @@ PyObject *FastRequest_HttpPost(PyObject *self, PyObject *args) {
     StringBuffer *strbuf;
 
     PyObject *headers = NULL, *payload = NULL, *payload_json_dump, *json_dumps;
-    PyObject *json_dumps_call_args;
+    PyObject *json_dumps_call_args, *payload_repr;
     PyObject *response_args, *response, *res_data, *res_size, *req_url;
 
     FastRequest_FuncDebug("FastRequest_HttpPost", ">> Initializing arguments");
@@ -265,21 +265,36 @@ PyObject *FastRequest_HttpPost(PyObject *self, PyObject *args) {
     if (payload != NULL) {
         FastRequest_FuncDebug("FastRequest_HttpPost", ">> Payload is given");
 
-        json_dumps = PyObject_GetAttrString(json_module, "loads");
+        if (PyDict_Check(payload)) {
+            FastRequest_FuncDebug("FastRequest_HttpPost", ">> Payload is dictionary");
 
-        if (json_dumps == NULL) {
-            PyErr_SetString(PyExc_AttributeError, "json.dumps");
-            return NULL;
+            json_dumps = PyObject_GetAttrString(json_module, "dumps");
+
+            if (json_dumps == NULL) {
+                PyErr_SetString(PyExc_AttributeError, "json.dumps");
+                return NULL;
+            }
+
+            json_dumps_call_args = PyTuple_Pack(1, payload);
+            payload_json_dump = PyObject_Call(json_dumps, json_dumps_call_args, NULL);
+
+            payload_str = PyUnicode_AsUTF8(payload_json_dump);
+
+            Py_DECREF(json_dumps_call_args);
+            Py_DECREF(json_dumps);
+            Py_DECREF(payload_json_dump);
+        } else if (PyUnicode_Check(payload)) {
+            FastRequest_FuncDebug("FastRequest_HttpPost", ">> Payload is string");
+
+            payload_str = PyUnicode_AsUTF8(payload);
+        } else {
+            FastRequest_FuncDebug("FastRequest_HttpPost", ">> Payload is not dictionary nor string, will use repr");
+
+            payload_repr = PyObject_Repr(payload);
+            payload_str = PyUnicode_AsUTF8(payload_repr);
+
+            Py_DECREF(payload_repr);
         }
-
-        json_dumps_call_args = PyTuple_Pack(1, payload);
-        payload_json_dump = PyObject_Call(json_dumps, json_dumps_call_args, NULL);
-
-        payload_str = PyUnicode_AsUTF8(payload_json_dump);
-
-        Py_DECREF(json_dumps_call_args);
-        Py_DECREF(json_dumps);
-        Py_DECREF(payload_json_dump);
     } else {
         FastRequest_FuncDebug("FastRequest_HttpPost", ">> Payload is NULL");
 
@@ -344,8 +359,6 @@ PyObject *FastRequest_HttpPost(PyObject *self, PyObject *args) {
     Py_DECREF(req_url);
 
     StringBuffer_Free(strbuf);
-
-    PyMem_RawFree((void *) payload_str);
 
     if (response == NULL) {
         PyErr_SetString(PyExc_RuntimeError, "response PyObject got NULL");

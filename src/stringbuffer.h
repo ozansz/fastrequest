@@ -15,6 +15,7 @@ typedef struct {
 StringBuffer *StringBuffer_Create(void);
 StringBuffer *StringBuffer_FromString(const char *str);
 void StringBuffer_Free(StringBuffer *buf);
+void StringBuffer_Dump(StringBuffer *buf);
 int_fast64_t StringBuffer_Extend(StringBuffer *buf);
 int_fast64_t StringBuffer_PushChar(StringBuffer *buf, char ch);
 int_fast64_t StringBuffer_PushSequence(StringBuffer *buf, char *seq, size_t size);

@@ -35,6 +35,8 @@ StringBuffer *StringBuffer_FromString(const char *str) {
     for (buf->index = 0; (size_t)(buf->index) < strlen(str); buf->index++)
         buf->buf[buf->index] = str[buf->index];
 
+    buf->index--;
+
     return buf;
 }
 
@@ -51,7 +53,7 @@ void StringBuffer_Free(StringBuffer *buf) {
 }
 
 int_fast64_t StringBuffer_Extend(StringBuffer *buf) {
-    FastRequest_FuncDebug("StringBuffer_Extend", "==> Function enter");
+    //FastRequest_FuncDebug("StringBuffer_Extend", "==> Function enter");
 
     if (buf == NULL)
         return -FR_ERR_NULL_ARG;
@@ -64,7 +66,7 @@ int_fast64_t StringBuffer_Extend(StringBuffer *buf) {
 
     buf->size += STRINGBUFFER_EXTEND_SIZE;
 
-    FastRequest_FuncDebug("StringBuffer_Extend", "<== Function exit");
+    //FastRequest_FuncDebug("StringBuffer_Extend", "<== Function exit");
 
     return buf->size;
 }
@@ -122,4 +124,23 @@ char *StringBuffer_GetSequenceRef(StringBuffer *buf, size_t size, int_fast64_t *
     *size_read = size;
 
     return retpos;
+}
+
+void StringBuffer_Dump(StringBuffer *buf) {
+    if (buf == NULL) {
+        FastRequest_FuncDebug("StringBuffer_Dump", "==== DUMP <NULL> ====");
+        return;
+    }
+
+    FastRequest_FuncDebug("StringBuffer_Dump", "==== DUMP ====");
+    printf("Address: %ld\n", (unsigned long) buf);
+    printf("Head Index: %lld\n", buf->head_index);
+    printf("Index: %lld\n", buf->index);
+    printf("Size: %lld\n", buf->size);
+    printf("String: ");
+
+    for (int i = 0; i <= buf->index; i++)
+        printf("%c", buf->buf[i]);
+
+    printf("\n\n");
 }
