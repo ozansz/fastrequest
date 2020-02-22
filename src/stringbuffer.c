@@ -14,6 +14,7 @@ StringBuffer *StringBuffer_Create(void) {
     StringBuffer *buf = (StringBuffer *) PyMem_RawMalloc(sizeof(StringBuffer));
 
     buf->buf = (char *) PyMem_RawMalloc(sizeof(char) * STRINGBUFFER_INITIAL_SIZE);
+    buf->head_index = -1;
     buf->index = -1;
     buf->size = STRINGBUFFER_INITIAL_SIZE;
 
@@ -76,6 +77,9 @@ int_fast64_t StringBuffer_PushChar(StringBuffer *buf, char ch) {
 int_fast64_t StringBuffer_PushSequence(StringBuffer *buf, char *seq, size_t size) {
     int_fast64_t push_char_ret;
 
+    if (buf == NULL)
+        return -FR_ERR_NULL_ARG;
+
     buf->buf = PyMem_RawRealloc(buf->buf, sizeof(char) * (buf->size + size + 1));
 
     // Memory error
@@ -87,4 +91,19 @@ int_fast64_t StringBuffer_PushSequence(StringBuffer *buf, char *seq, size_t size
             return push_char_ret;
 
     return buf->size;
+}
+
+char *StringBuffer_GetSequenceRef(StringBuffer *buf, size_t size) {
+    char *retpos;
+
+    if (buf == NULL)
+        return -FR_ERR_NULL_ARG;
+
+    if ((buf->index - buf->head_index) < size)
+        size = buf->index - buf->head_index;
+
+    retpos = buf->buf + buf->head_index + 1;
+    buf->head_index += size;
+
+    return retpos;
 }
