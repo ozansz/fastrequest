@@ -86,7 +86,7 @@ static PyObject *HTTPResponse_text(HTTPResponseObject *self, PyObject *Py_UNUSED
         return NULL;
     }
 
-    return PyUnicode_FromEncodedObject(self->response_data, NULL, NULL);
+    return PyUnicode_FromEncodedObject(self->response_data, "utf-8", NULL);
 }
 
 static PyObject *HTTPResponse_json(HTTPResponseObject *self, PyObject *Py_UNUSED(ignored)) {
@@ -118,6 +118,10 @@ static PyObject *HTTPResponse_json(HTTPResponseObject *self, PyObject *Py_UNUSED
     return call_ret;
 }
 
+static PyObject *HTTPResponse_get_default_encoding(HTTPResponseObject *self, PyObject *Py_UNUSED(ignored)) {
+    return PyUnicode_FromString("utf-8");
+}
+
 static PyObject *HTTPResponse_repr(HTTPResponseObject *self) {
     return PyUnicode_FromFormat("<fastrequest.HTTPResponse (%S)>", self->request_url);
 }
@@ -132,6 +136,9 @@ static PyMethodDef HTTPResponse_methods[] = {
     },
     {"json", (PyCFunction) HTTPResponse_json, METH_NOARGS,
      "Get the string value of the HTTP response"
+    },
+    {"get_default_encoding", (PyCFunction) HTTPResponse_get_default_encoding,
+    METH_CLASS | METH_NOARGS, "Get the default encoding type"
     },
     {NULL}  /* Sentinel */
 };
