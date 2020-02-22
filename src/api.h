@@ -9,4 +9,7 @@
 #define FR_GENERIC_ERRSTR_SIZE  100
 
 StringBuffer *FastRequestAPI_LibcurlHttpGet(char *url, PyObject *headers);
+StringBuffer *FastRequestAPI_LibcurlHttpPost(char *url, const char *payload, PyObject *headers);
+
 size_t _FastRequestAPI_LibcurlWriteCallback(char *ptr, size_t size, size_t nmemb, void *userdata);
+size_t _FastRequestAPI_LibcurlReadCallback(char *ptr, size_t size, size_t nmemb, void *userdata);

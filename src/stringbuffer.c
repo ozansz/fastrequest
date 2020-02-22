@@ -23,6 +23,21 @@ StringBuffer *StringBuffer_Create(void) {
     return buf;
 }
 
+StringBuffer *StringBuffer_FromString(const char *str) {
+    StringBuffer *buf = StringBuffer_Create();
+
+    if (str == NULL)
+        return buf;
+
+    if (strlen(str) >= (size_t)(buf->size))
+        buf->buf = (char *) PyMem_RawRealloc(buf->buf, sizeof(char) * (strlen(str) + 4));
+
+    for (buf->index = 0; (size_t)(buf->index) < strlen(str); buf->index++)
+        buf->buf[buf->index] = str[buf->index];
+
+    return buf;
+}
+
 void StringBuffer_Free(StringBuffer *buf) {
     FastRequest_FuncDebug("StringBuffer_Free", "==> Function enter");
 
@@ -93,13 +108,13 @@ int_fast64_t StringBuffer_PushSequence(StringBuffer *buf, char *seq, size_t size
     return buf->size;
 }
 
-char *StringBuffer_GetSequenceRef(StringBuffer *buf, size_t size, size_t *size_read) {
+char *StringBuffer_GetSequenceRef(StringBuffer *buf, size_t size, int_fast64_t *size_read) {
     char *retpos;
 
     if (buf == NULL)
-        return -FR_ERR_NULL_ARG;
+        return NULL;
 
-    if ((buf->index - buf->head_index) < size)
+    if ((size_t)(buf->index - buf->head_index) < size)
         size = buf->index - buf->head_index;
 
     retpos = buf->buf + buf->head_index + 1;

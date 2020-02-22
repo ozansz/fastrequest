@@ -2,7 +2,7 @@
 
 #include <Python.h>
 
-#undef FR_DEBUG
+#define FR_DEBUG
 
 #if PY_MAJOR_VERSION < 3
     #error This library is compatible for Python version >= 3 only!
@@ -15,3 +15,4 @@
 #endif
 
 PyObject *FastRequest_HttpGet(PyObject *self, PyObject *args);
+PyObject *FastRequest_HttpPost(PyObject *self, PyObject *args);
