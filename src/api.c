@@ -13,11 +13,13 @@
 
 static int_fast64_t curl_write_callback_stringbuffer_err = 0;
 
-StringBuffer *FastRequestAPI_LibcurlHttpGet(char *url) {
+StringBuffer *FastRequestAPI_LibcurlHttpGet(char *url, PyObject *headers) {
     char err_string[FR_GENERIC_ERRSTR_SIZE];
 
     CURL *curl_handle;
     CURLcode res;
+
+    struct curl_slist *header_chunk = NULL;
 
     FastRequest_FuncDebug("FastRequestAPI_LibcurlHttpGet", "==> Function enter");
 
@@ -41,6 +43,32 @@ StringBuffer *FastRequestAPI_LibcurlHttpGet(char *url) {
     curl_easy_setopt(curl_handle, CURLOPT_WRITEDATA, (void *) strbuf);
     curl_easy_setopt(curl_handle, CURLOPT_USERAGENT, FR_LIBCURL_DEFAULT_UAGENT);
 
+    if (headers != NULL) {
+        PyObject *key, *value;
+        Py_ssize_t pos = 0;
+        
+        char hdr[FR_LIBCURL_HEADER_ITEM_SIZE];
+
+        FastRequest_FuncDebug("FastRequestAPI_LibcurlHttpGet", "<ARG> Given headers");
+
+        while (PyDict_Next(headers, &pos, &key, &value)) {
+            if (value == Py_None)
+                snprintf(hdr, FR_LIBCURL_HEADER_ITEM_SIZE, "%s:", PyUnicode_AsUTF8(key));
+            else
+                snprintf(hdr, FR_LIBCURL_HEADER_ITEM_SIZE, "%s: %s", PyUnicode_AsUTF8(key), PyUnicode_AsUTF8(value));
+
+            FastRequest_FuncDebug("FastRequestAPI_LibcurlHttpGet", hdr);
+
+            header_chunk = curl_slist_append(header_chunk, hdr);
+        }
+
+        curl_easy_setopt(curl_handle, CURLOPT_HTTPHEADER, header_chunk);
+
+        // There is no need to call Py_DECREF for key and value as they are borrowed references.
+    } else {
+        FastRequest_FuncDebug("FastRequestAPI_LibcurlHttpGet", "<ARG> Headers null");
+    }
+
     curl_write_callback_stringbuffer_err = 0;
     res = curl_easy_perform(curl_handle);
 
@@ -59,6 +87,11 @@ StringBuffer *FastRequestAPI_LibcurlHttpGet(char *url) {
     FastRequest_FuncDebug("FastRequestAPI_LibcurlHttpGet", "Cleaning up CURL context");
 
     curl_easy_cleanup(curl_handle);
+
+    // Cleanup custom headers
+    if (header_chunk)
+        curl_slist_free_all(header_chunk);
+
     curl_global_cleanup();
 
     FastRequest_FuncDebug("FastRequestAPI_LibcurlHttpGet", "<== Function exit");
@@ -70,12 +103,12 @@ size_t _FastRequestAPI_LibcurlWriteCallback(char *ptr, size_t size, size_t nmemb
     StringBuffer *buf = (StringBuffer *) userdata;
     int_fast64_t strbuf_push_ret;
 
-    FastRequest_FuncDebug("_FastRequestAPI_LibcurlWriteCallback", "==> Function enter");
+    //FastRequest_FuncDebug("_FastRequestAPI_LibcurlWriteCallback", "==> Function enter");
 
     if ((strbuf_push_ret = StringBuffer_PushSequence(buf, ptr, nmemb)) < 0)
         curl_write_callback_stringbuffer_err = strbuf_push_ret;
 
-    FastRequest_FuncDebug("_FastRequestAPI_LibcurlWriteCallback", "<== Function exit");
+    //FastRequest_FuncDebug("_FastRequestAPI_LibcurlWriteCallback", "<== Function exit");
 
     return size * nmemb;
 }

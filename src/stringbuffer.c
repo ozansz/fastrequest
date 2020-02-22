@@ -56,7 +56,7 @@ int_fast64_t StringBuffer_Extend(StringBuffer *buf) {
 int_fast64_t StringBuffer_PushChar(StringBuffer *buf, char ch) {
     int_fast64_t extend_ret;
 
-    FastRequest_FuncDebug("StringBuffer_PushChar", "==> Function enter");
+    //FastRequest_FuncDebug("StringBuffer_PushChar", "==> Function enter");
 
     if (buf == NULL)
         return -FR_ERR_NULL_ARG;
@@ -68,7 +68,7 @@ int_fast64_t StringBuffer_PushChar(StringBuffer *buf, char ch) {
     buf->index++;
     buf->buf[buf->index] = ch;
 
-    FastRequest_FuncDebug("StringBuffer_PushChar", "<== Function exit");
+    //FastRequest_FuncDebug("StringBuffer_PushChar", "<== Function exit");
 
     return buf->index;
 }

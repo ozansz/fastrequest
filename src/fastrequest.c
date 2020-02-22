@@ -167,24 +167,61 @@ PyObject *FastRequest_HttpGet(PyObject *self, PyObject *args) {
 
     StringBuffer *strbuf;
 
+    PyObject *headers = NULL;
     PyObject *response_args, *response, *res_data, *res_size, *req_url;
 
-    if (!PyArg_ParseTuple(args, "s", &url)) {
+    if (!PyArg_ParseTuple(args, "s|O", &url, &headers)) {
         return NULL;
     }
 
-    strbuf = FastRequestAPI_LibcurlHttpGet(url);
+    if (headers != NULL) {
+        FastRequest_FuncDebug("FastRequest_HttpGet", "<ARG> Headers is non-null");
 
-    if (strbuf == NULL)
+        if (!PyDict_Check(headers)) {
+            PyErr_SetString(PyExc_TypeError, "\'headers\' argument must be type of dict.");
+            return NULL;
+        }
+
+        Py_INCREF(headers);
+    } else {
+        FastRequest_FuncDebug("FastRequest_HttpGet", "<ARG> Headers is null");
+    }
+
+    strbuf = FastRequestAPI_LibcurlHttpGet(url, headers);
+
+    if (strbuf == NULL) {
+        PyErr_SetString(PyExc_RuntimeError, "FastRequestAPI_LibcurlHttpGet response strbuf got NULL");
         return NULL;
+    }
 
     StringBuffer_PushChar(strbuf, '\0');
 
-    res_data = PyBytes_FromString(strbuf->buf);
+    res_data = PyBytes_FromString(strbuf->buf);    
     res_size = PyLong_FromLongLong((long long)(strbuf->index));
     req_url = PyUnicode_FromString(url);
 
+    if (res_data == NULL) {
+        PyErr_SetString(PyExc_RuntimeError, "res_data PyObject got NULL");
+        return NULL;
+    }
+
+    if (res_size == NULL) {
+        PyErr_SetString(PyExc_RuntimeError, "res_size PyObject got NULL");
+        return NULL;
+    }
+
+    if (req_url == NULL) {
+        PyErr_SetString(PyExc_RuntimeError, "req_url PyObject got NULL");
+        return NULL;
+    }
+
     response_args = PyTuple_Pack(3, res_data, res_size, req_url);
+
+    if (response_args == NULL) {
+        PyErr_SetString(PyExc_RuntimeError, "response_args PyObject got NULL");
+        return NULL;
+    }
+
     response = PyObject_CallObject((PyObject *) &HTTPResponseType, response_args);
 
     Py_DECREF(response_args);
@@ -193,6 +230,11 @@ PyObject *FastRequest_HttpGet(PyObject *self, PyObject *args) {
     Py_DECREF(req_url);
 
     StringBuffer_Free(strbuf);
+
+    if (response == NULL) {
+        PyErr_SetString(PyExc_RuntimeError, "response PyObject got NULL");
+        return NULL;
+    }
 
     return response;
 }
@@ -211,8 +253,6 @@ static struct PyModuleDef fastrequestmodule = {
 };
 
 PyMODINIT_FUNC PyInit_fastrequest(void) {
-    //return PyModule_Create(&fastrequestmodule);
-
     PyObject *m;
 
     if (PyType_Ready(&HTTPResponseType) < 0)
