@@ -93,7 +93,7 @@ int_fast64_t StringBuffer_PushSequence(StringBuffer *buf, char *seq, size_t size
     return buf->size;
 }
 
-char *StringBuffer_GetSequenceRef(StringBuffer *buf, size_t size) {
+char *StringBuffer_GetSequenceRef(StringBuffer *buf, size_t size, size_t *size_read) {
     char *retpos;
 
     if (buf == NULL)
@@ -104,6 +104,7 @@ char *StringBuffer_GetSequenceRef(StringBuffer *buf, size_t size) {
 
     retpos = buf->buf + buf->head_index + 1;
     buf->head_index += size;
+    *size_read = size;
 
     return retpos;
 }

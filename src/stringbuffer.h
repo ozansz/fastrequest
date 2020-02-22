@@ -17,4 +17,4 @@ void StringBuffer_Free(StringBuffer *buf);
 int_fast64_t StringBuffer_Extend(StringBuffer *buf);
 int_fast64_t StringBuffer_PushChar(StringBuffer *buf, char ch);
 int_fast64_t StringBuffer_PushSequence(StringBuffer *buf, char *seq, size_t size);
-char *StringBuffer_GetSequenceRef(StringBuffer *buf, size_t size);
+char *StringBuffer_GetSequenceRef(StringBuffer *buf, size_t size, size_t *size_read);
