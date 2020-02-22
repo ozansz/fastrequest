@@ -12,6 +12,8 @@
 
 #include "structmember.h"
 
+static PyObject *json_module = NULL;
+
 static void HTTPResponse_dealloc(HTTPResponseObject *self) {
     Py_XDECREF(self->response_data);
     Py_XDECREF(self->response_size);
@@ -87,6 +89,35 @@ static PyObject *HTTPResponse_text(HTTPResponseObject *self, PyObject *Py_UNUSED
     return PyUnicode_FromEncodedObject(self->response_data, NULL, NULL);
 }
 
+static PyObject *HTTPResponse_json(HTTPResponseObject *self, PyObject *Py_UNUSED(ignored)) {
+    PyObject *json_loads, *call_ret, *call_args;
+
+    if (self->response_data == NULL) {
+        PyErr_SetString(PyExc_AttributeError, "data");
+        return NULL;
+    }
+
+    if (json_module == NULL) {
+        PyErr_SetString(PyExc_ImportError, "JSON module was not imported");
+        return NULL;
+    }
+
+    json_loads = PyObject_GetAttrString(json_module, "loads");
+
+    if (json_loads == NULL) {
+        PyErr_SetString(PyExc_AttributeError, "json.loads");
+        return NULL;
+    }
+
+    call_args = PyTuple_Pack(1, self->response_data);
+    call_ret = PyObject_Call(json_loads, call_args, NULL);
+
+    Py_DECREF(call_args);
+    Py_DECREF(json_loads);
+
+    return call_ret;
+}
+
 static PyObject *HTTPResponse_repr(HTTPResponseObject *self) {
     return PyUnicode_FromFormat("<fastrequest.HTTPResponse (%S)>", self->request_url);
 }
@@ -97,6 +128,9 @@ static PyObject *HTTPResponse_str(HTTPResponseObject *self) {
 
 static PyMethodDef HTTPResponse_methods[] = {
     {"text", (PyCFunction) HTTPResponse_text, METH_NOARGS,
+     "Get the string value of the HTTP response"
+    },
+    {"json", (PyCFunction) HTTPResponse_json, METH_NOARGS,
      "Get the string value of the HTTP response"
     },
     {NULL}  /* Sentinel */
@@ -191,6 +225,13 @@ PyMODINIT_FUNC PyInit_fastrequest(void) {
 
     Py_INCREF(&HTTPResponseType);
     PyModule_AddObject(m, "HTTPResponse", (PyObject *) &HTTPResponseType);
+
+    json_module = PyImport_ImportModule("json");
+
+    if (json_module == NULL)
+        return NULL;
+
+    Py_INCREF(json_module);
 
     return m;
 }
