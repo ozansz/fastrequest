@@ -7,6 +7,7 @@
 #include "stringbuffer.h"
 #include "utils.h"
 #include "errors.h"
+#include "fastrequest.h"
 
 StringBuffer *StringBuffer_Create(void) {
     FastRequest_FuncDebug("StringBuffer_Create", "==> Function enter");
@@ -127,6 +128,7 @@ char *StringBuffer_GetSequenceRef(StringBuffer *buf, size_t size, int_fast64_t *
 }
 
 void StringBuffer_Dump(StringBuffer *buf) {
+#ifdef FR_DEBUG
     if (buf == NULL) {
         FastRequest_FuncDebug("StringBuffer_Dump", "==== DUMP <NULL> ====");
         return;
@@ -143,4 +145,5 @@ void StringBuffer_Dump(StringBuffer *buf) {
         printf("%c", buf->buf[i]);
 
     printf("\n\n");
+#endif
 }
