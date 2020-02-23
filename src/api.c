@@ -104,14 +104,14 @@ StringBuffer *FastRequestAPI_LibcurlHttpGet(char *url, PyObject *headers) {
     curl_write_callback_stringbuffer_err = 0;
     res = curl_easy_perform(curl_handle);
 
-    if(res != CURLE_OK) {
-        snprintf(err_string, FR_GENERIC_ERRSTR_SIZE - 1, "Generic CURL error: %s", curl_easy_strerror(res));
+    if (curl_write_callback_stringbuffer_err < 0) {
+        snprintf(err_string, FR_GENERIC_ERRSTR_SIZE - 1, "String buffer error in CURL write callback (%lld)", curl_write_callback_stringbuffer_err);
         PyErr_SetString(PyExc_RuntimeError, err_string);
         return NULL;
     }
 
-    if (curl_write_callback_stringbuffer_err < 0) {
-        snprintf(err_string, FR_GENERIC_ERRSTR_SIZE - 1, "String buffer error in CURL write callback (%lld)", curl_write_callback_stringbuffer_err);
+    if(res != CURLE_OK) {
+        snprintf(err_string, FR_GENERIC_ERRSTR_SIZE - 1, "Generic CURL error: %s", curl_easy_strerror(res));
         PyErr_SetString(PyExc_RuntimeError, err_string);
         return NULL;
     }
@@ -207,12 +207,6 @@ StringBuffer *FastRequestAPI_LibcurlHttpPost(char *url, const char *payload, int
 
     res = curl_easy_perform(curl_handle);
 
-    if(res != CURLE_OK) {
-        snprintf(err_string, FR_GENERIC_ERRSTR_SIZE - 1, "Generic CURL error: %s", curl_easy_strerror(res));
-        PyErr_SetString(PyExc_RuntimeError, err_string);
-        return NULL;
-    }
-
     if (curl_write_callback_stringbuffer_err < 0) {
         snprintf(err_string, FR_GENERIC_ERRSTR_SIZE - 1, "String buffer error in CURL write callback (%lld)", curl_write_callback_stringbuffer_err);
         PyErr_SetString(PyExc_RuntimeError, err_string);
@@ -221,6 +215,12 @@ StringBuffer *FastRequestAPI_LibcurlHttpPost(char *url, const char *payload, int
 
     if (curl_read_callback_stringbuffer_err < 0) {
         snprintf(err_string, FR_GENERIC_ERRSTR_SIZE - 1, "String buffer error in CURL read callback (%lld)", curl_read_callback_stringbuffer_err);
+        PyErr_SetString(PyExc_RuntimeError, err_string);
+        return NULL;
+    }
+
+    if(res != CURLE_OK) {
+        snprintf(err_string, FR_GENERIC_ERRSTR_SIZE - 1, "Generic CURL error: %s", curl_easy_strerror(res));
         PyErr_SetString(PyExc_RuntimeError, err_string);
         return NULL;
     }
