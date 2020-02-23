@@ -13,6 +13,3 @@
         #error This library is compatible for Linux-based platforms only!
     #endif
 #endif
-
-PyObject *FastRequest_HttpGet(PyObject *self, PyObject *args);
-PyObject *FastRequest_HttpPost(PyObject *self, PyObject *args);

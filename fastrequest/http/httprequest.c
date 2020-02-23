@@ -1,6 +1,8 @@
 #include <Python.h>
 
 #include "httprequest.h"
+#include "funcwrappers.h"
+
 #include "structmember.h"
 
 extern PyObject *json_module;
@@ -87,6 +89,47 @@ static int HTTPRequest_init(HTTPRequestObject *self, PyObject *args, PyObject *k
     return 0;
 }
 
+PyObject *HTTPRequest_get(HTTPRequestObject *self) {
+    PyObject *ret, *args;
+    
+    Py_INCREF(self->request_url);
+    Py_INCREF(self->request_headers);
+    args = PyTuple_Pack(2, self->request_url, self->request_headers);
+
+    if (args == NULL)
+        return NULL;
+
+    ret = FastRequest_HttpGet((PyObject *) self, args);
+
+    Py_DECREF(args);
+
+    if (ret == NULL)
+        return NULL;
+
+    return ret;
+}
+
+PyObject *HTTPRequest_post(HTTPRequestObject *self) {
+    PyObject *ret, *args;
+    
+    Py_INCREF(self->request_url);
+    Py_INCREF(self->request_data);
+    Py_INCREF(self->request_headers);
+    args = PyTuple_Pack(3, self->request_url, self->request_data, self->request_headers);
+
+    if (args == NULL)
+        return NULL;
+
+    ret = FastRequest_HttpPost((PyObject *) self, args);
+
+    Py_DECREF(args);
+
+    if (ret == NULL)
+        return NULL;
+
+    return ret;
+}
+
 static PyObject *HTTPRequest_repr(HTTPRequestObject *self) {
     return PyUnicode_FromFormat("<fastrequest.http.HTTPRequest (%S)>", self->request_url);
 }
@@ -96,6 +139,12 @@ static PyObject *HTTPRequest_str(HTTPRequestObject *self) {
 }
 
 static PyMethodDef HTTPRequest_methods[] = {
+    {"get", (PyCFunction) HTTPRequest_get, METH_NOARGS,
+     "Make a GET request with the instance settings"
+    },
+    {"post", (PyCFunction) HTTPRequest_post, METH_NOARGS,
+     "Make a GET request with the instance settings"
+    },
     {NULL}  /* Sentinel */
 };
 
