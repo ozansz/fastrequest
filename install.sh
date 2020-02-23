@@ -15,6 +15,11 @@ echo -e "\n[+] Making cleanup ..."
 rm -rf build/
 rm *.so
 
+if [ "$1" == "--notest" ]; then
+    echo -e "\n[i] Done. Bye."
+    exit
+fi
+
 echo -e "\n[+] Running tests ..."
 
 for tfile in `ls tests/test_*.py`; do
