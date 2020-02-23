@@ -15,4 +15,12 @@ echo -e "\n[+] Making cleanup ..."
 rm -rf build/
 rm *.so
 
-echo "[i] Done. Bye."
+echo -e "\n[+] Running tests ..."
+
+for tfile in `ls tests/test_*.py`; do
+    unit_name=$(echo "$tfile" | cut -c 12- | rev | cut -c 4- | rev)
+    echo "==> Unit <$unit_name>"
+    python3 "$tfile"
+done
+
+echo -e "\n[i] Done. Bye."
