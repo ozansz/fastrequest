@@ -17,7 +17,7 @@ http_module = Extension(
 
 setup(
     name="fastrequest",
-    version="1.6.0-beta",
+    version="1.6.1-beta",
     description="fastrequest fast http requests extension",
     packages=['fastrequest'],
     ext_modules=[http_module]

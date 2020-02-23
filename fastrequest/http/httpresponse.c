@@ -1,6 +1,8 @@
 #include <Python.h>
 
+#include "http.h"
 #include "httpresponse.h"
+
 #include "structmember.h"
 
 extern PyObject *json_module;
@@ -77,7 +79,7 @@ static PyObject *HTTPResponse_text(HTTPResponseObject *self, PyObject *Py_UNUSED
         return NULL;
     }
 
-    return PyUnicode_FromEncodedObject(self->response_data, "utf-8", NULL);
+    return PyUnicode_FromEncodedObject(self->response_data, FR_HTTP_DEFAULT_ENCODING, NULL);
 }
 
 static PyObject *HTTPResponse_json(HTTPResponseObject *self, PyObject *Py_UNUSED(ignored)) {
@@ -110,7 +112,7 @@ static PyObject *HTTPResponse_json(HTTPResponseObject *self, PyObject *Py_UNUSED
 }
 
 static PyObject *HTTPResponse_get_default_encoding(HTTPResponseObject *self, PyObject *Py_UNUSED(ignored)) {
-    return PyUnicode_FromString("utf-8");
+    return PyUnicode_FromString(FR_HTTP_DEFAULT_ENCODING);
 }
 
 static PyObject *HTTPResponse_repr(HTTPResponseObject *self) {

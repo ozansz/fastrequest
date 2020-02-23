@@ -53,12 +53,23 @@ PyMODINIT_FUNC PyInit_http(void) {
         return NULL;
     }
 
+    if (PyModule_AddStringConstant(m, "DEFAULT_ENCODING", FR_HTTP_DEFAULT_ENCODING) < 0)
+        return NULL;
+
+    if (PyModule_AddIntConstant(m, "CONTENT_URLENCODED", FR_HTTP_URLENCODED) < 0)
+        return NULL;
+
+    if (PyModule_AddIntConstant(m, "CONTENT_JSON", FR_HTTP_JSON) < 0)
+        return NULL;
+
     Py_INCREF(&HTTPRequestType);
     if (PyModule_AddObject(m, "HTTPRequest", (PyObject *) &HTTPRequestType) < 0) {
         Py_DECREF(m);
         Py_DECREF(&HTTPRequestType);
         return NULL;
     }
+
+
 
     json_module = PyImport_ImportModule("json");
 
