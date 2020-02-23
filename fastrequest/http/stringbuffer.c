@@ -7,7 +7,7 @@
 #include "stringbuffer.h"
 #include "utils.h"
 #include "errors.h"
-#include "fastrequest.h"
+#include "http.h"
 
 StringBuffer *StringBuffer_Create(void) {
     FastRequest_FuncDebug("StringBuffer_Create", "==> Function enter");

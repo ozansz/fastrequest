@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdint.h>
 
-#include "fastrequest.h"
+#include "http.h"
 
 void FastRequest_Debug(const char *msg) {
 #ifdef FR_DEBUG

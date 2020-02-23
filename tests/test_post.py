@@ -1,7 +1,7 @@
 import json
 from urllib.parse import urlencode, quote_plus
 
-import fastrequest
+import fastrequest.http
 
 test_query_params = {"foo1": "bar1", "foo2": "bar2"}
 test_headers = {
@@ -19,37 +19,37 @@ test_json_payload = {
 encode_f = lambda x: urlencode(x, quote_via=quote_plus)
 
 def test_basic_post():
-    return fastrequest.http_post("https://postman-echo.com/post")
+    return fastrequest.http.post("https://postman-echo.com/post")
 
 def test_with_urlparams():
-    res = fastrequest.http_post("https://postman-echo.com/post?" + encode_f(test_query_params))
+    res = fastrequest.http.post("https://postman-echo.com/post?" + encode_f(test_query_params))
 
     assert(encode_f(res.json()["args"]) == encode_f(test_query_params))
 
     return res
 
 def test_with_payload_string():
-    res = fastrequest.http_post("https://postman-echo.com/post", encode_f(test_query_params))
+    res = fastrequest.http.post("https://postman-echo.com/post", encode_f(test_query_params))
 
     assert(encode_f(res.json()["form"]) == encode_f(test_query_params))
 
     return res
 
 def test_with_payload_json():
-    res = fastrequest.http_post("https://postman-echo.com/post", test_json_payload)
+    res = fastrequest.http.post("https://postman-echo.com/post", test_json_payload)
 
     assert(json.dumps(res.json()["json"]) == json.dumps(test_json_payload))
 
     return res
 
 def test_with_payload_custom():
-    return fastrequest.http_post("https://postman-echo.com/post", [1, 2, 3, ("q")])
+    return fastrequest.http.post("https://postman-echo.com/post", [1, 2, 3, ("q")])
 
 def test_with_headers():
-    return fastrequest.http_post("https://postman-echo.com/post", "", test_headers)
+    return fastrequest.http.post("https://postman-echo.com/post", "", test_headers)
 
 def test_with_all():
-    return fastrequest.http_post("https://postman-echo.com/post", test_json_payload, test_headers)
+    return fastrequest.http.post("https://postman-echo.com/post", test_json_payload, test_headers)
 
 if __name__ == "__main__":
     tests = [

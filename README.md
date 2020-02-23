@@ -15,9 +15,9 @@ chmod +x install.sh
 Just import `fastrequest` module. It's usage is as easy as ABC!
 
 ```python
-import fastrequest
+import fastrequest.http
 
-res = fastrequest.http_get("https://www.google.com")
+res = fastrequest.http.get("https://www.google.com")
 
 with open("index.html", "w") as savefile:
   savefile.write(res.text())
@@ -27,9 +27,9 @@ Also, JSON (`application/json`) responses can be handled easily too.
 
 ```python
 import json
-import fastrequest
+import fastrequest.http
 
-res = fastrequest.http_get("https://jsonplaceholder.typicode.com/comments?postId=1")
+res = fastrequest.http.get("https://jsonplaceholder.typicode.com/comments?postId=1")
 
 with open("data.json", "w") as fp:
   json.dump(fp, res.json())
@@ -57,9 +57,9 @@ class HTTPResponse(object):
     return json.loads(self.text())
 ```
 
-### http_get
+### http.get
 
-`http_get(url: str[, headers:dict]) -> HTTPResponse`
+`http.get(url: str[, headers:dict]) -> HTTPResponse`
 
 HTTP/GET request function using `libcurl` as backend.
 

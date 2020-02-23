@@ -13,7 +13,7 @@ pip3 install .
 
 echo -e "\n[+] Making cleanup ..."
 rm -rf build/
-rm *.so
+rm fastrequest/*.so
 
 if [ "$1" == "--notest" ]; then
     echo -e "\n[i] Done. Bye."

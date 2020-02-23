@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 
-#include "fastrequest.h"
+#include "http.h"
 #include "stringbuffer.h"
 #include "api.h"
 #include "utils.h"
@@ -371,27 +371,27 @@ PyObject *FastRequest_HttpPost(PyObject *self, PyObject *args) {
     return response;
 }
 
-static PyMethodDef FastRequestMethods[] = {
-    {"http_get", FastRequest_HttpGet, METH_VARARGS, "Fast GET request using libcurl4 library."},
-    {"http_post", FastRequest_HttpPost, METH_VARARGS, "Fast POST request using libcurl4 library."},
+static PyMethodDef FastRequestHTTPMethods[] = {
+    {"get", FastRequest_HttpGet, METH_VARARGS, "Fast GET request using libcurl4 library."},
+    {"post", FastRequest_HttpPost, METH_VARARGS, "Fast POST request using libcurl4 library."},
     {NULL, NULL, 0, NULL}
 };
 
-static struct PyModuleDef fastrequestmodule = {
+static struct PyModuleDef fastrequesthttpmodule = {
     PyModuleDef_HEAD_INIT,
     "fastrequest",
     "A Python C extension module for fast HTTP requests with SSL/TLS support",
     -1,
-    FastRequestMethods
+    FastRequestHTTPMethods
 };
 
-PyMODINIT_FUNC PyInit_fastrequest(void) {
+PyMODINIT_FUNC PyInit_http(void) {
     PyObject *m;
 
     if (PyType_Ready(&HTTPResponseType) < 0)
         return NULL;
 
-    m = PyModule_Create(&fastrequestmodule);
+    m = PyModule_Create(&fastrequesthttpmodule);
     
     if (m == NULL)
         return NULL;

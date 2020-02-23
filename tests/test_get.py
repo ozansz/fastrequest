@@ -1,19 +1,19 @@
-import fastrequest
+import fastrequest.http
 
 def test_basic_get():
-    return fastrequest.http_get("https://www.google.com/")
+    return fastrequest.http.get("https://www.google.com/")
 
 def test_with_urlparams():
-    return fastrequest.http_get("https://postman-echo.com/get?foo1=bar1&foo2=bar2")
+    return fastrequest.http.get("https://postman-echo.com/get?foo1=bar1&foo2=bar2")
 
 def test_with_headers():
-    return fastrequest.http_get("https://www.google.com/", {
+    return fastrequest.http.get("https://www.google.com/", {
         "X-FR-Test": "v1.2.6",
         "X-Hello": "World"
     })
 
 def test_with_params_and_headers():
-    return fastrequest.http_get("https://postman-echo.com/get?foo1=bar1&foo2=bar2", {
+    return fastrequest.http.get("https://postman-echo.com/get?foo1=bar1&foo2=bar2", {
         "X-FR-Test": "v1.2.6",
         "X-Hello": "World"
     })

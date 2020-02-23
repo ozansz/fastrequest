@@ -1,12 +1,12 @@
 from setuptools import Extension, setup
 
-module = Extension(
-    "fastrequest",
+http_module = Extension(
+    "fastrequest.http",
     sources=[
-        'src/fastrequest.c',
-        'src/api.c',
-        'src/stringbuffer.c',
-        'src/utils.c'
+        'fastrequest/http/http.c',
+        'fastrequest/http/api.c',
+        'fastrequest/http/stringbuffer.c',
+        'fastrequest/http/utils.c'
     ],
     library_dirs=['/usr/local/lib'],
     libraries=['curl']
@@ -14,7 +14,8 @@ module = Extension(
 
 setup(
     name="fastrequest",
-    version="1.2.6-beta",
+    version="1.3.0-beta",
     description="fastrequest fast http requests extension",
-    ext_modules=[module]
+    packages=['fastrequest'],
+    ext_modules=[http_module]
 )
