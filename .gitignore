@@ -56,3 +56,6 @@ build/
 .vscode/
 .DS_Store/
 .DS_Store
+
+fastrequest/__pycache__/
+fastrequest/http/__pycache__/
