@@ -1,3 +1,4 @@
+import os
 import json
 from urllib.parse import urlencode, quote_plus
 
@@ -51,6 +52,19 @@ def test_with_headers():
 def test_with_all():
     return fastrequest.http.post("https://postman-echo.com/post", test_json_payload, test_headers)
 
+def test_save_response_to_file():
+    save_file = "__test_save.data"
+
+    res = fastrequest.http.post("https://postman-echo.com/post", test_json_payload, test_headers)
+
+    res.save_to(save_file)
+
+    with open(save_file, "r") as fp:
+        if fp.read() != res.text():
+            raise RuntimeError("Saved content does not match with response text.")
+
+    os.remove(save_file)
+
 if __name__ == "__main__":
     tests = [
         test_basic_post,
@@ -59,7 +73,8 @@ if __name__ == "__main__":
         test_with_payload_string,
         test_with_payload_json,
         test_with_payload_custom,
-        test_with_all
+        test_with_all,
+        test_save_response_to_file
     ]
 
     for testfunc in tests:

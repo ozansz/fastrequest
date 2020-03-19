@@ -1,5 +1,9 @@
 #include <Python.h>
 
+#include <stdio.h> 
+#include <fcntl.h> 
+#include <errno.h> 
+
 #include "http.h"
 #include "httpresponse.h"
 
@@ -115,6 +119,36 @@ static PyObject *HTTPResponse_get_default_encoding(HTTPResponseObject *self, PyO
     return PyUnicode_FromString(FR_HTTP_DEFAULT_ENCODING);
 }
 
+static PyObject *HTTPResponse_save_to(HTTPResponseObject *self, PyObject *args, PyObject *kwargs) {
+    int fd;
+    char *file_path;
+    PyObject *save_file;
+
+    if (!PyArg_ParseTuple(args, "s", &file_path)) {
+        return NULL;
+    }
+
+    fd = open(file_path, O_WRONLY | O_CREAT, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);
+
+    if (fd < 0) {
+        PyErr_SetString(PyExc_IOError, "Could not get (open) file descriptor");
+        return NULL;
+    }
+
+    save_file = PyFile_FromFd(fd, file_path, "w", -1, FR_HTTP_DEFAULT_ENCODING, NULL, NULL, fd);
+    
+    if (save_file == NULL)
+        return NULL;
+
+    if (PyFile_WriteObject(HTTPResponse_text(self, NULL), save_file, Py_PRINT_RAW) < 0)
+        return NULL;
+
+    Py_DECREF(save_file);
+    close(fd);
+
+    Py_RETURN_NONE;
+}
+
 static PyObject *HTTPResponse_repr(HTTPResponseObject *self) {
     return PyUnicode_FromFormat("<fastrequest.HTTPResponse (%S)>", self->request_url);
 }
@@ -132,6 +166,9 @@ static PyMethodDef HTTPResponse_methods[] = {
     },
     {"get_default_encoding", (PyCFunction) HTTPResponse_get_default_encoding,
     METH_CLASS | METH_NOARGS, "Get the default encoding type"
+    },
+    {"save_to", (PyCFunction) HTTPResponse_save_to, METH_VARARGS,
+    "Save response data to file"
     },
     {NULL}  /* Sentinel */
 };

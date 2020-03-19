@@ -28,4 +28,7 @@ for tfile in `ls tests/test_*.py`; do
     python3 "$tfile"
 done
 
+echo -e "\n[+] Making test cleanup ..."
+rm -f "__test_save.data"
+
 echo -e "\n[i] Done. Bye."
