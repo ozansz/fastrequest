@@ -18,9 +18,7 @@ Just import `fastrequest` module. It's usage is as easy as ABC!
 import fastrequest.http
 
 res = fastrequest.http.get("https://www.google.com")
-
-with open("index.html", "w") as savefile:
-  savefile.write(res.text())
+res.save_to("index.html")
 ```
 
 Also, JSON (`application/json`) responses can be handled easily too.
