@@ -1,4 +1,11 @@
 # fastrequest
+![GitHub](https://img.shields.io/github/license/ozansz/fastrequest)
+![PyPI](https://img.shields.io/pypi/v/fastrequest)
+![Requires.io](https://img.shields.io/requires/github/ozansz/fastrequest)
+![PyPI - Implementation](https://img.shields.io/pypi/implementation/fastrequest)
+![GitHub issues](https://img.shields.io/github/issues/ozansz/fastrequest)
+![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/ozansz/fastrequest)
+
 A Python C extension module for fast HTTP requests with SSL/TLS support
 
 ## Installation

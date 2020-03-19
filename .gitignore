@@ -59,3 +59,5 @@ build/
 
 fastrequest/__pycache__/
 fastrequest/http/__pycache__/
+
+dist/
